@@ -18,13 +18,14 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-header">📐 Fractional Calculus Engine</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Grünwald‑Letnikov fractional derivatives | Optimal fractional order d | Memory‑preserving stationarity | Ridge regression on fractional features</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Multi‑window Grünwald‑Letnikov fractional derivatives | Optimal fractional order d | Best window per ETF</div>', unsafe_allow_html=True)
 
 st.sidebar.markdown("## 📐 Fractional Calculus")
 st.sidebar.markdown(f"**Run Date:** `{st.session_state.get('run_date', 'Not loaded')}`")
 st.sidebar.markdown(f"**Next Trading Day:** `{next_trading_day()}`")
 st.sidebar.markdown(f"**Fractional order search:** [{config.D_MIN}, {config.D_MAX}] step {config.D_STEP}")
 st.sidebar.markdown(f"**Prediction window:** {config.PREDICTION_WINDOW} days")
+st.sidebar.markdown("**Windows evaluated:** 63, 252, 504, 1008, 2016 days (best per ETF)")
 
 OUTPUT_REPO = config.OUTPUT_REPO
 HF_TOKEN = config.HF_TOKEN
@@ -68,7 +69,7 @@ if "error" in data:
 st.session_state['run_date'] = data['run_date']
 universes = data["universes"]
 
-st.header("🏆 Top ETFs by Fractional‑Calculus Predicted Return")
+st.header("🏆 Top ETFs by Fractional‑Calculus Predicted Return (Best Window)")
 
 for universe_name, uni_data in universes.items():
     top_etfs = uni_data.get("top_etfs", [])
@@ -82,14 +83,24 @@ for universe_name, uni_data in universes.items():
             <div class="etf-card">
                 <div class="etf-ticker">{etf['ticker']}</div>
                 <div class="etf-score">pred return = {etf['pred_return']:.6f}</div>
+                <div class="etf-score">best window = {etf.get('best_window', 'N/A')}d</div>
             </div>
             """, unsafe_allow_html=True)
-    with st.expander("📋 Full ranking (all ETFs)"):
+    with st.expander("📋 Full ranking (all ETFs, best window per ETF)"):
         full = uni_data.get("full_scores", {})
         if full:
-            df = pd.DataFrame(list(full.items()), columns=["ETF", "Predicted Return"])
-            df = df.sort_values("Predicted Return", ascending=False)
+            # full_scores can be dict of floats or dict of dicts
+            rows = []
+            for ticker, info in full.items():
+                if isinstance(info, dict):
+                    score = info.get("score", info.get("pred_return", 0.0))
+                    win = info.get("best_window", "N/A")
+                else:
+                    score = info
+                    win = "N/A"
+                rows.append({"ETF": ticker, "Best Predicted Return": score, "Best Window": win})
+            df = pd.DataFrame(rows).sort_values("Best Predicted Return", ascending=False)
             st.dataframe(df, use_container_width=True, hide_index=True)
     st.divider()
 
-st.caption("The Grünwald‑Letnikov fractional derivative of order d (0<d<1) is applied to ETF return series. The optimal d is chosen to make the differenced series stationary (ADF p<0.05). The fractionally differenced series is used as features in a ridge regression to predict next‑day returns. Higher predicted return → stronger long signal.")
+st.caption("For each rolling window, the optimal fractional differentiation order d (0<d<1) is chosen to make the series stationary (ADF p<0.05). The fractionally differenced series is used as features to predict next‑day returns. For each ETF, the window giving the highest predicted return is selected. Higher predicted return → stronger long signal.")
