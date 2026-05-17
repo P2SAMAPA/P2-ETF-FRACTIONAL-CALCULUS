@@ -17,18 +17,18 @@ UNIVERSES = {
     ]
 }
 
-# Fractional differentiation search range
+# Rolling windows for optimal fractional differentiation (days)
+WINDOWS = [63, 252, 504, 1008, 2016]
+
+# Fractional derivative search range
 D_MIN = 0.0
 D_MAX = 1.0
 D_STEP = 0.05
 
-# Rolling window for estimating optimal d (days)
-OPT_D_WINDOW = 252
+# Prediction window (days) – use last PRED_WINDOW points of fractional series as features
+PRED_WINDOW = 20
 
-# Prediction window (days) – use last OPT_D_WINDOW fractionally differenced series to predict next day
-PREDICTION_WINDOW = 20   # use last 20 days of fractional series as features
-
-# Linear regression parameters
+# Ridge regression alpha
 RIDGE_ALPHA = 1.0
 
 TOP_N = 3
