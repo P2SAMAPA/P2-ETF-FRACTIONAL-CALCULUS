@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.special import binom
 from statsmodels.tsa.stattools import adfuller
+import config   # <-- added
 
 def frac_diff(series, d, thresh=1e-5):
     """
@@ -27,25 +28,21 @@ def optimal_d(series, d_min=0.0, d_max=1.0, step=0.05, p_thresh=0.05):
     """
     best_d = d_min
     best_series = series
-    # We search from low to high d (increasing stationarity)
     for d in np.arange(d_min, d_max + step, step):
         diffed = frac_diff(series, d)
-        # Drop initial NaNs (if any)
         diffed = diffed[~np.isnan(diffed)]
         if len(diffed) < 10:
             continue
-        p_val = adfuller(diffed, autolag='AIC')[1]
+        try:
+            p_val = adfuller(diffed, autolag='AIC')[1]
+        except:
+            continue
         if p_val < p_thresh:
             return d, diffed
     # If none stationary, return highest d
     return d_max, frac_diff(series, d_max)
 
 def compute_frac_features(returns_df, etf, window, d_opt=None):
-    """
-    For a single ETF, compute fractionally differenced series over the last `window` days.
-    If d_opt is None, compute optimal d on that window.
-    Returns (frac_series, optimal_d).
-    """
     series = returns_df[etf].iloc[-window:].dropna().values
     if d_opt is None:
         d_opt, frac_series = optimal_d(series, config.D_MIN, config.D_MAX, config.D_STEP)
