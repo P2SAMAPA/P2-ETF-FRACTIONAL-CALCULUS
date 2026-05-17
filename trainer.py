@@ -7,7 +7,7 @@ from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 import config
 import data_manager
-from fractional_deriv import compute_frac_features
+from fractional_deriv import optimal_d  # ensure this function exists
 
 def main():
     if not config.HF_TOKEN:
@@ -19,7 +19,7 @@ def main():
     today = datetime.now().strftime("%Y-%m-%d")
 
     for universe_name, tickers in config.UNIVERSES.items():
-        print(f"\n=== Universe: {university_name} (Fractional Calculus) ===")
+        print(f"\n=== Universe: {universe_name} (Fractional Calculus) ===")
         returns = data_manager.prepare_returns_matrix(df, tickers)
         if returns.empty or len(returns) < max(config.WINDOWS) + config.PREDICTION_WINDOW + 10:
             print("  Insufficient data")
@@ -38,7 +38,6 @@ def main():
             for etf in tickers:
                 if etf not in returns.columns:
                     continue
-                # Compute optimal d and fractionally differenced series on the window
                 series = returns[etf].iloc[-win:].dropna().values
                 if len(series) < config.PREDICTION_WINDOW + 1:
                     continue
@@ -55,7 +54,7 @@ def main():
                 X_scaled = scaler.fit_transform(X)
                 model = Ridge(alpha=config.RIDGE_ALPHA)
                 model.fit(X_scaled, y)
-                last_X = frac_series[-config.PREDICTION_WINDOW:].reshape(1,-1)
+                last_X = frac_series[-config.PREDICTION_WINDOW:].reshape(1, -1)
                 last_scaled = scaler.transform(last_X)
                 pred = model.predict(last_scaled)[0]
                 etf_pred[etf] = pred
