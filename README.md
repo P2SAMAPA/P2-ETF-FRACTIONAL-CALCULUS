@@ -1,34 +1,18 @@
-# P2-ETF-FRACTIONAL-CALCULUS
+# Fractional Calculus Engine
 
-Welcome to the P2-ETF-Fractional-Calculus repository!
+Applies Grünwald‑Letnikov fractional differentiation (order d between 0 and 1) to ETF return series. Optimal d is chosen to achieve stationarity (ADF test). The fractionally differenced series preserves long memory while being stationary. A ridge regression model uses recent fractional differences to predict next‑day returns.
 
-## Overview
+- **Fractional order search:** 0.0 to 1.0, step 0.05
+- **Stationarity test:** Augmented Dickey‑Fuller (p < 0.05)
+- **Prediction window:** 20 days of fractional features
+- **Output:** top 3 ETFs per universe by predicted return
 
-This project explores the intersection of ETF (Exchange-Traded Funds) analysis and fractional calculus applications.
+Runs daily on GitHub Actions.
 
-## Features
-
-- Fractional calculus implementations
-- ETF data analysis
-- Mathematical modeling and computations
-
-## Getting Started
-
-To get started with this project, clone the repository and explore the codebase.
+## Local execution
 
 ```bash
-git clone https://github.com/P2SAMAPA/P2-ETF-FRACTIONAL-CALCULUS.git
-cd P2-ETF-FRACTIONAL-CALCULUS
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues for any improvements or bugs.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Contact
-
-For questions or suggestions, please reach out to the repository maintainer.
+pip install -r requirements.txt
+export HF_TOKEN=<your_token>
+python trainer.py
+streamlit run streamlit_app.py
