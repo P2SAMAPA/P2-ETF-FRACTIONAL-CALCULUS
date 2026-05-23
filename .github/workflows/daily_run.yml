@@ -2,7 +2,7 @@ name: Daily Fractional Calculus Run
 
 on:
   schedule:
-    - cron: '05 05 * * 1-5'
+    - cron: '05 02 * * 1-6'
   workflow_dispatch:
 
 jobs:
